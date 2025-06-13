@@ -23,7 +23,14 @@ export default function SignUpForm() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/") // Redirect to home or dashboard after successful signup
+      // Check if there's a stored redirect path
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin');
+      if (redirectPath) {
+        sessionStorage.removeItem('redirectAfterLogin');
+        router.push(redirectPath);
+      } else {
+        router.push("/dashboard"); // Default redirect to dashboard after successful signup
+      }
     }
   }, [isAuthenticated, router])
 

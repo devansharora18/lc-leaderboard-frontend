@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/auth.context';
 
 interface ProtectedRouteProps {
@@ -12,12 +12,15 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children, fallbackPath = '/auth/login' }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
+      // Store the current path as the intended destination
+      sessionStorage.setItem('redirectAfterLogin', pathname);
       router.push(fallbackPath);
     }
-  }, [isAuthenticated, isLoading, router, fallbackPath]);
+  }, [isAuthenticated, isLoading, router, fallbackPath, pathname]);
 
   // Show loading state while checking authentication
   if (isLoading) {
