@@ -17,7 +17,7 @@ interface ProfilePanelProps {
 
 export function ProfilePanel({ onClose }: ProfilePanelProps) {
   return (
-    <div className="w-80 bg-zinc-900 border-l border-zinc-800 flex flex-col fixed right-0 top-0 h-full z-50">
+    <div className="w-full h-full bg-zinc-900 border-l border-zinc-800 flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">Profile</h2>

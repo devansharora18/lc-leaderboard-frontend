@@ -17,6 +17,8 @@ import {
 
 interface ChatAreaProps {
   selectedChat: string | null
+  chatName?: string | null
+  chatType?: 'user' | 'group'
   onShowProfile: () => void
 }
 
@@ -61,7 +63,8 @@ const messages: Message[] = [
   }
 ]
 
-export function ChatArea({ selectedChat, onShowProfile }: ChatAreaProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProfile }: ChatAreaProps) {
   const [newMessage, setNewMessage] = useState("")
 
   if (!selectedChat) {
@@ -71,6 +74,8 @@ export function ChatArea({ selectedChat, onShowProfile }: ChatAreaProps) {
       </div>
     )
   }
+
+  const displayName = chatName || selectedChat
 
   const handleSendMessage = () => {
     if (!newMessage.trim()) return
@@ -88,11 +93,11 @@ export function ChatArea({ selectedChat, onShowProfile }: ChatAreaProps) {
         >
           <Avatar className="h-10 w-10 mr-3">
             <AvatarFallback className="bg-zinc-700 text-white">
-              {selectedChat.split(' ').map(n => n[0]).join('')}
+              {displayName.split(' ').map(n => n[0]).join('')}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h2 className="font-semibold text-white">{selectedChat}</h2>
+            <h2 className="font-semibold text-white">{displayName}</h2>
             <span className="text-xs text-gray-400">Online</span>
           </div>
         </div>
@@ -134,7 +139,7 @@ export function ChatArea({ selectedChat, onShowProfile }: ChatAreaProps) {
               message.sender === "user" ? "justify-end" : "justify-start"
             )}>
               <span className="text-xs text-gray-400 font-medium">
-                {message.sender === "user" ? "You" : selectedChat}
+                {message.sender === "user" ? "You" : displayName}
               </span>
               <span className="text-xs text-gray-500 ml-2">{message.timestamp}</span>
             </div>

@@ -1,123 +1,63 @@
 "use client"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useState } from "react"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { 
   MessageCircle, 
   Users, 
   Heart, 
   Gift, 
-  Settings
+  Settings,
+  Plus,
+  Search,
+  Globe
 } from "lucide-react"
+import { useMyGroups } from "@/hooks"
+import { CreateGroupDialog } from "@/components/groups/create-group-dialog"
 
 interface ChatSidebarProps {
   selectedChat: string | null
-  onSelectChat: (chatId: string) => void
+  onSelectChat: (chatId: string, type: 'user' | 'group', name?: string) => void
+  onShowDiscoverGroups: () => void
+  onShowProfile: () => void
 }
 
-const chatData = [
+interface DisplayItem {
+  id: string
+  name: string
+  lastMessage: string
+  time: string
+  unread: boolean
+  avatar: string
+  isAdmin?: boolean
+  isGroup?: boolean
+}
+
+const mockChats: DisplayItem[] = [
   {
     id: "penny-valeria-1",
     name: "Penny Valeria",
-    lastMessage: "text text text text...",
+    lastMessage: "Hey! How's your LeetCode progress?",
     time: "12:35 pm",
     unread: true,
     avatar: ""
   },
   {
-    id: "penny-valeria-2", 
-    name: "Penny Valeria",
-    lastMessage: "text text text text...",
-    time: "12:35 pm",
-    unread: true,
+    id: "alex-chen",
+    name: "Alex Chen",
+    lastMessage: "Check out this dynamic programming solution...",
+    time: "11:20 am",
+    unread: false,
     avatar: ""
   },
   {
-    id: "penny-valeria-3",
-    name: "Penny Valeria", 
-    lastMessage: "text text text text...",
-    time: "12:35 pm",
-    unread: true,
-    avatar: ""
-  },
-  {
-    id: "penny-valeria-4",
-    name: "Penny Valeria",
-    lastMessage: "text text text text...", 
-    time: "12:35 pm",
-    unread: true,
-    avatar: ""
-  },
-  {
-    id: "penny-valeria-5",
-    name: "Penny Valeria",
-    lastMessage: "text text text text...",
-    time: "12:35 pm", 
-    unread: true,
-    avatar: ""
-  },
-  {
-    id: "penny-valeria-6",
-    name: "Penny Valeria",
-    lastMessage: "text text text text...",
-    time: "12:35 pm",
-    unread: true,
-    avatar: ""
-  },
-  {
-    id: "penny-valeria-7",
-    name: "Penny Valeria",
-    lastMessage: "text text text text...",
-    time: "12:35 pm",
-    unread: true,
-    avatar: ""
-  },
-  {
-    id: "penny-valeria-8",
-    name: "Penny Valeria",
-    lastMessage: "text text text text...",
-    time: "12:35 pm",
-    unread: true,
-    avatar: ""
-  },
-  {
-    id: "penny-valeria-9",
-    name: "Penny Valeria",
-    lastMessage: "text text text text...",
-    time: "12:35 pm",
-    unread: true,
-    avatar: ""
-  },
-  {
-    id: "penny-valeria-10",
-    name: "Penny Valeria",
-    lastMessage: "text text text text...",
-    time: "12:35 pm",
-    unread: true,
-    avatar: ""
-  },
-  {
-    id: "penny-valeria-11",
-    name: "Penny Valeria",
-    lastMessage: "text text text text...",
-    time: "12:35 pm",
-    unread: true,
-    avatar: ""
-  },
-  {
-    id: "penny-valeria-12",
-    name: "Penny Valeria",
-    lastMessage: "text text text text...",
-    time: "12:35 pm",
-    unread: true,
-    avatar: ""
-  },
-  {
-    id: "silent-perfection",
-    name: "Silent Perfection",
-    lastMessage: "Admin",
-    time: "12:35 pm",
+    id: "sarah-johnson",
+    name: "Sarah Johnson",
+    lastMessage: "Ready for today's daily challenge?",
+    time: "10:15 am",
     unread: false,
     avatar: "",
     isAdmin: true
@@ -125,22 +65,107 @@ const chatData = [
 ]
 
 const filterTabs = [
-  { id: "all", label: "All", active: true },
-  { id: "unread", label: "Unread", active: false },
-  { id: "favorites", label: "Favorites", active: false },
-  { id: "groups", label: "Groups", active: false }
+  { id: "all", label: "All" },
+  { id: "unread", label: "Unread" },
+  { id: "groups", label: "My Groups" },
+  { id: "favorites", label: "Favorites" }
 ]
 
-export function ChatSidebar({ selectedChat, onSelectChat }: ChatSidebarProps) {
+export function ChatSidebar({ selectedChat, onSelectChat, onShowDiscoverGroups, onShowProfile }: ChatSidebarProps) {
+  const [activeTab, setActiveTab] = useState("all")
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const { myGroups, loading: groupsLoading, error: groupsError, refetch } = useMyGroups()
+
+  const getDisplayData = (): DisplayItem[] => {
+    const groupItems: DisplayItem[] = myGroups.map(group => ({
+      id: group.id,
+      name: group.name,
+      lastMessage: `${group.memberCount || group._count?.members || 0} members • Last activity: ${new Date(group.updatedAt).toLocaleDateString()}`,
+      time: new Date(group.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      unread: false,
+      avatar: "",
+      isGroup: true
+    }))
+
+    let data: DisplayItem[] = []
+    
+    switch (activeTab) {
+      case "groups":
+        data = groupItems
+        break
+      case "unread":
+        data = mockChats.filter(chat => chat.unread)
+        break
+      case "favorites":
+        data = [] // Implement favorites functionality
+        break
+      default:
+        data = [...mockChats, ...groupItems]
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      data = data.filter(item => 
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    }
+
+    return data
+  }
+
+  const displayData = getDisplayData()
+
+  const handleGroupCreated = () => {
+    setShowCreateDialog(false)
+    refetch()
+  }
+
   return (
     <div className="w-80 bg-zinc-900 border-r border-zinc-800 flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-zinc-800">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-semibold text-white">Chats</h1>
-          <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black font-medium">
-            Duel Now!
-          </Button>
+          <h1 className="text-xl font-semibold text-white">
+            {activeTab === "groups" ? "My Groups" : "Chats"}
+          </h1>
+          {activeTab === "groups" ? (
+            <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={onShowDiscoverGroups}
+                className="border-zinc-600 text-zinc-300 hover:bg-zinc-700"
+              >
+                <Globe className="h-4 w-4 mr-1" />
+                Discover
+              </Button>
+              <Button 
+                size="sm" 
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+                onClick={() => setShowCreateDialog(true)}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Create
+              </Button>
+            </div>
+          ) : (
+            <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black font-medium">
+              Duel Now!
+            </Button>
+          )}
+        </div>
+        
+        {/* Search Bar */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder={activeTab === "groups" ? "Search groups..." : "Search chats..."}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 bg-zinc-800 border-zinc-700 text-white placeholder-gray-400"
+          />
         </div>
         
         {/* Filter Tabs */}
@@ -148,11 +173,12 @@ export function ChatSidebar({ selectedChat, onSelectChat }: ChatSidebarProps) {
           {filterTabs.map((tab) => (
             <Button
               key={tab.id}
-              variant={tab.active ? "default" : "ghost"}
+              variant={activeTab === tab.id ? "default" : "ghost"}
               size="sm"
+              onClick={() => setActiveTab(tab.id)}
               className={cn(
                 "flex-1 text-xs",
-                tab.active 
+                activeTab === tab.id 
                   ? "bg-zinc-700 text-white" 
                   : "text-gray-400 hover:text-white hover:bg-zinc-700"
               )}
@@ -163,51 +189,124 @@ export function ChatSidebar({ selectedChat, onSelectChat }: ChatSidebarProps) {
         </div>
       </div>
 
-      {/* Chat List */}
+      {/* Chat/Group List */}
       <div className="flex-1 overflow-y-auto">
-        {chatData.map((chat) => (
+        {groupsLoading && activeTab === "groups" && (
+          <div className="p-4 text-center text-gray-400">Loading groups...</div>
+        )}
+        
+        {groupsError && activeTab === "groups" && (
+          <div className="p-4 text-center text-red-400">Failed to load groups</div>
+        )}
+
+        {displayData.length === 0 && !groupsLoading && (
+          <div className="p-4 text-center text-gray-400">
+            {searchQuery ? (
+              <div>
+                <p className="mb-2">No results found</p>
+                <p className="text-sm text-gray-500">Try a different search term</p>
+              </div>
+            ) : activeTab === "groups" ? (
+              <div>
+                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="mb-2">No groups yet</p>
+                <p className="text-sm text-gray-500 mb-4">Create or discover groups to get started</p>
+                <div className="flex gap-2 justify-center">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={onShowDiscoverGroups}
+                    className="border-zinc-600"
+                  >
+                    Discover Groups
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    onClick={() => setShowCreateDialog(true)}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Create Group
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              "No chats available"
+            )}
+          </div>
+        )}
+
+        {displayData.map((item) => (
           <div
-            key={chat.id}
-            onClick={() => onSelectChat(chat.name)}
+            key={item.id}
+            onClick={() => onSelectChat(
+              item.isGroup ? `group-${item.id}` : item.id, 
+              item.isGroup ? 'group' : 'user',
+              item.name
+            )}
             className={cn(
               "flex items-center p-4 cursor-pointer hover:bg-zinc-800 border-b border-zinc-800/50",
-              selectedChat === chat.name ? "bg-zinc-800" : ""
+              selectedChat === (item.isGroup ? `group-${item.id}` : item.id) ? "bg-zinc-800" : ""
             )}
           >
             <Avatar className="h-12 w-12 mr-3">
-              <AvatarImage src={chat.avatar} />
-              <AvatarFallback className="bg-zinc-700 text-white">
-                {chat.name.split(' ').map(n => n[0]).join('')}
+              <AvatarFallback className={cn(
+                "text-white",
+                item.isGroup ? "bg-blue-600" : "bg-zinc-700"
+              )}>
+                {item.isGroup ? (
+                  <Users className="h-6 w-6" />
+                ) : (
+                  item.name.split(' ').map(n => n[0]).join('')
+                )}
               </AvatarFallback>
             </Avatar>
             
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <h3 className="font-medium text-white truncate">
-                  {chat.name}
-                  {chat.isAdmin && (
+                  {item.name}
+                  {item.isAdmin && (
                     <span className="ml-1 text-xs text-gray-400">Admin</span>
                   )}
+                  {item.isGroup && (
+                    <span className="ml-1 text-xs text-blue-400">Group</span>
+                  )}
                 </h3>
-                <span className="text-xs text-gray-400 ml-2">{chat.time}</span>
+                <span className="text-xs text-gray-400 ml-2">{item.time}</span>
               </div>
-              <p className="text-sm text-gray-400 truncate">{chat.lastMessage}</p>
+              <p className="text-sm text-gray-400 truncate">{item.lastMessage}</p>
             </div>
             
-            {chat.unread && (
+            {item.unread && (
               <div className="w-2 h-2 bg-amber-500 rounded-full ml-2"></div>
             )}
           </div>
         ))}
       </div>
 
-      {/* Bottom Icons */}
+      {/* Bottom Navigation */}
       <div className="p-4 border-t border-zinc-800">
         <div className="flex justify-around">
-          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className={cn(
+              "text-gray-400 hover:text-white",
+              activeTab === "all" && "text-white"
+            )}
+            onClick={() => setActiveTab("all")}
+          >
             <MessageCircle className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className={cn(
+              "text-gray-400 hover:text-white",
+              activeTab === "groups" && "text-white"
+            )}
+            onClick={() => setActiveTab("groups")}
+          >
             <Users className="h-5 w-5" />
           </Button>
           <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
@@ -216,11 +315,23 @@ export function ChatSidebar({ selectedChat, onSelectChat }: ChatSidebarProps) {
           <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
             <Gift className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-gray-400 hover:text-white"
+            onClick={onShowProfile}
+          >
             <Settings className="h-5 w-5" />
           </Button>
         </div>
       </div>
+
+      {/* Create Group Dialog */}
+      <CreateGroupDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        onGroupCreated={handleGroupCreated}
+      />
     </div>
   )
 }
