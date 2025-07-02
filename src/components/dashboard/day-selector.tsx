@@ -1,23 +1,42 @@
+"use client"
+
+import { useUserProfile } from '../../hooks';
+import { useMemo } from 'react';
+
 export function DaySelector() {
-  const days = [
-    { day: "Sat", date: "7", completed: true },
-    { day: "Sun", date: "8", completed: true },
-    { day: "Mon", date: "9", completed: true },
-    { day: "Tue", date: "10", completed: true },
-    { day: "Wed", date: "11", completed: true },
-    { day: "Thu", date: "12", completed: true },
-    { day: "Fri", date: "13", active: true },
-    { day: "Sat", date: "14", future: true },
-    { day: "Sun", date: "15", future: true },
-    { day: "Mon", date: "16", future: true },
-    { day: "Tue", date: "17", future: true },
-    { day: "Wed", date: "18", future: true },
-    { day: "Thu", date: "19", future: true },
-    { day: "Fri", date: "20", future: true },
-    { day: "Sat", date: "21", future: true },
-    { day: "Sun", date: "22", future: true },
-    { day: "Mon", date: "23", future: true },
-  ]
+  const { user, loading } = useUserProfile();
+
+  // Generate days array based on current date
+  const days = useMemo(() => {
+    const today = new Date();
+    const daysArray = [];
+    
+    // Generate 17 days: 8 before today, today, and 8 after today
+    for (let i = -8; i <= 8; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      
+      const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+      const dayNumber = date.getDate().toString();
+      const isToday = i === 0;
+      const isPast = i < 0;
+      const isFuture = i > 0;
+      
+      // For demonstration, mark some past days as completed based on streak
+      // In a real app, this would come from actual user activity data
+      const isCompleted = isPast && user?.streak && Math.abs(i) <= user.streak;
+      
+      daysArray.push({
+        day: dayName,
+        date: dayNumber,
+        completed: isCompleted,
+        active: isToday,
+        future: isFuture,
+      });
+    }
+    
+    return daysArray;
+  }, [user?.streak]);
 
   return (
     <div className="grid grid-cols-13 gap-4 p-4">
@@ -25,7 +44,9 @@ export function DaySelector() {
       <div className="col-span-2 flex flex-col items-center justify-center bg-zinc-900 rounded-lg p-4 h-28">
         <div className="flex flex-col items-center gap-2 mb-1">
           <div className="text-2xl">🔥</div>
-          <div className="text-2xl font-bold text-white">19</div>
+          <div className="text-2xl font-bold text-white">
+            {loading ? '...' : (user?.streak || 0)}
+          </div>
         </div>
         <div className="text-xs text-gray-400 uppercase tracking-wide">days</div>
         <div className="text-xs text-gray-500">Current Streak</div>
@@ -35,7 +56,13 @@ export function DaySelector() {
       <div className="col-span-8 flex items-center bg-zinc-900 rounded-lg p-4 h-28">
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-3">
-            <div className="text-sm font-medium text-gray-300">June 5, 2025</div>
+            <div className="text-sm font-medium text-gray-300">
+              {new Date().toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric' 
+              })}
+            </div>
           </div>
           
           <div className="flex items-center gap-2">

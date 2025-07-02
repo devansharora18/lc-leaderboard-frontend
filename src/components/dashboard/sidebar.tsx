@@ -1,6 +1,16 @@
+"use client"
+
 import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
 
 export function Sidebar() {
+  const pathname = usePathname()
+  
+  const isActive = (path: string) => {
+    return pathname === path
+  }
+
   return (
     <div className="flex w-16 flex-col items-center border-r border-zinc-800 bg-zinc-900 py-4">
       <div className="mb-8 flex h-10 w-10 items-center justify-center rounded-full bg-amber-500 text-black">
@@ -12,7 +22,12 @@ export function Sidebar() {
       <nav className="flex flex-1 flex-col items-center space-y-6">
         <Link
           href="/dashboard"
-          className="flex h-10 w-10 items-center justify-center rounded-md bg-zinc-800 text-amber-500"
+          className={cn(
+            "flex h-10 w-10 items-center justify-center rounded-md transition-colors",
+            isActive("/dashboard")
+              ? "bg-zinc-800 text-amber-500"
+              : "text-gray-400 hover:bg-zinc-800 hover:text-white"
+          )}
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
             <path
@@ -23,8 +38,13 @@ export function Sidebar() {
           </svg>
         </Link>
         <Link
-          href="/messages"
-          className="flex h-10 w-10 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-zinc-800 hover:text-white"
+          href="/chat"
+          className={cn(
+            "flex h-10 w-10 items-center justify-center rounded-md transition-colors",
+            isActive("/messages")
+              ? "bg-zinc-800 text-amber-500"
+              : "text-gray-400 hover:bg-zinc-800 hover:text-white"
+          )}
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
             <path
@@ -36,7 +56,12 @@ export function Sidebar() {
         </Link>
         <Link
           href="/settings"
-          className="flex h-10 w-10 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-zinc-800 hover:text-white"
+          className={cn(
+            "flex h-10 w-10 items-center justify-center rounded-md transition-colors",
+            isActive("/settings")
+              ? "bg-zinc-800 text-amber-500"
+              : "text-gray-400 hover:bg-zinc-800 hover:text-white"
+          )}
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
             <path
