@@ -5,3 +5,4 @@ export { useLeetCodeConnection } from './useLeetCodeConnection';
 export { useLeaderboard } from './useLeaderboard';
 export { useUserProfile } from './useUserProfile';
 export * from './useGroups';
+export { useMessages } from './useMessages';

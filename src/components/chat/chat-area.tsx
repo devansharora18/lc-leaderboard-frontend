@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,50 +22,35 @@ interface ChatAreaProps {
   onShowProfile: () => void
 }
 
-interface Message {
-  id: string
-  sender: "user" | "other"
-  content: string
-  timestamp: string
-  type?: "text" | "image"
-}
-
-const messages: Message[] = [
-  {
-    id: "1",
-    sender: "other",
-    content: "text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text",
-    timestamp: "12:35 pm"
-  },
-  {
-    id: "2", 
-    sender: "other",
-    content: "text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text",
-    timestamp: "12:35 pm"
-  },
-  {
-    id: "3",
-    sender: "other", 
-    content: "text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text",
-    timestamp: "12:35 pm"
-  },
-  {
-    id: "4",
-    sender: "user",
-    content: "text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text",
-    timestamp: "12:35 pm"
-  },
-  {
-    id: "5",
-    sender: "user",
-    content: "text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text",
-    timestamp: "12:35 pm"
-  }
-]
+import { useMessages, useUserProfile } from "@/hooks"
+import type { Message as ChatMessage } from "@/types/message"
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProfile }: ChatAreaProps) {
   const [newMessage, setNewMessage] = useState("")
+  const { user } = useUserProfile()
+
+  const { messages, loading, error, sendMessage } = useMessages({
+    chatType,
+    chatId: selectedChat,
+    page: 1,
+    limit: 50,
+  })
+
+  const formatTime = (iso: string) => {
+    const d = new Date(iso)
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+
+  const mappedMessages = useMemo(() => {
+    return messages.map((m: ChatMessage) => ({
+      id: m.id,
+      isUser: user?.id ? m.senderId === user.id : false,
+      content: m.content,
+      timestamp: formatTime(m.createdAt),
+      senderName: m.sender?.username,
+    }))
+  }, [messages, user?.id])
 
   if (!selectedChat) {
     return (
@@ -77,9 +62,9 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
 
   const displayName = chatName || selectedChat
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!newMessage.trim()) return
-    // Handle sending message logic here
+    await sendMessage(newMessage)
     setNewMessage("")
   }
 
@@ -131,15 +116,21 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message) => (
+        {loading && (
+          <div className="text-center text-gray-400">Loading messages...</div>
+        )}
+        {error && (
+          <div className="text-center text-red-400">{error}</div>
+        )}
+        {!loading && !error && mappedMessages.map((message) => (
           <div key={message.id} className="flex flex-col">
             {/* Sender Label */}
             <div className={cn(
               "flex items-center mb-1",
-              message.sender === "user" ? "justify-end" : "justify-start"
+              message.isUser ? "justify-end" : "justify-start"
             )}>
               <span className="text-xs text-gray-400 font-medium">
-                {message.sender === "user" ? "You" : displayName}
+                {message.isUser ? "You" : (message.senderName || displayName)}
               </span>
               <span className="text-xs text-gray-500 ml-2">{message.timestamp}</span>
             </div>
@@ -147,10 +138,10 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
             {/* Message Bubble */}
             <div className={cn(
               "flex",
-              message.sender === "user" ? "justify-end" : "justify-start"
+              message.isUser ? "justify-end" : "justify-start"
             )}>            <div className={cn(
               "max-w-[70%] rounded-lg p-3 text-sm",
-              message.sender === "user" 
+              message.isUser 
                 ? "bg-amber-500 text-black ml-auto" 
                 : "bg-zinc-800 text-white"
             )}>
@@ -174,7 +165,7 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Type a message..."
               className="bg-zinc-800 border-zinc-700 text-white placeholder-gray-400 pr-12"
-              onKeyPress={(e) => {
+              onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   handleSendMessage()
                 }

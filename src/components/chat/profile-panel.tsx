@@ -10,12 +10,23 @@ import {
   Star,
   Crown
 } from "lucide-react"
+import { useUserProfile } from "@/hooks"
 
 interface ProfilePanelProps {
   onClose: () => void
 }
 
 export function ProfilePanel({ onClose }: ProfilePanelProps) {
+  // Replace hardcoded profile with actual user
+  const { user } = useUserProfile();
+  const initials = user?.username
+    ? user.username
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "U";
   return (
     <div className="w-full h-full bg-zinc-900 border-l border-zinc-800 flex flex-col">
       {/* Header */}
@@ -36,11 +47,11 @@ export function ProfilePanel({ onClose }: ProfilePanelProps) {
         <div className="text-center">
           <Avatar className="h-20 w-20 mx-auto mb-4">
             <AvatarFallback className="bg-zinc-700 text-white text-xl">
-              PV
+              {initials}
             </AvatarFallback>
           </Avatar>
           
-          <h3 className="text-xl font-semibold text-white mb-1">Penny Valeria</h3>
+          <h3 className="text-xl font-semibold text-white mb-1">{user?.username || "User"}</h3>
           <div className="flex items-center justify-center mb-2">
             <Crown className="h-4 w-4 text-amber-500 mr-1" />
             <span className="text-amber-500 font-medium">19</span>
@@ -137,7 +148,7 @@ export function ProfilePanel({ onClose }: ProfilePanelProps) {
           
           {/* Center content */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="text-white font-bold text-lg">Penny</div>
+            <div className="text-white font-bold text-lg">{user?.username?.split(" ")[0] || "You"}</div>
             <div className="bg-amber-500 text-black text-xs px-2 py-1 rounded font-medium">
               You
             </div>

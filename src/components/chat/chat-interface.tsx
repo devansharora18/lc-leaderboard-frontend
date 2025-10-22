@@ -16,7 +16,7 @@ interface ChatData {
 }
 
 export function ChatInterface() {
-  const [selectedChat, setSelectedChat] = useState<string | null>("Penny Valeria")
+  const [selectedChat, setSelectedChat] = useState<string | null>(null)
   const [currentView, setCurrentView] = useState<ViewType>('chat')
   const [showProfile, setShowProfile] = useState(false)
   const [chatData, setChatData] = useState<Record<string, ChatData>>({})
@@ -90,7 +90,7 @@ export function ChatInterface() {
               onShowProfile={handleShowProfile}
             />
             {showProfile && (
-              <div className="w-80 flex-shrink-0">
+              <div className="w-80 shrink-0">
                 <ProfilePanel 
                   onClose={() => setShowProfile(false)}
                 />

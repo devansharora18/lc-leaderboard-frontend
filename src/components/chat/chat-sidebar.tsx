@@ -36,43 +36,13 @@ interface DisplayItem {
   isGroup?: boolean
 }
 
-const mockChats: DisplayItem[] = [
-  {
-    id: "penny-valeria-1",
-    name: "Penny Valeria",
-    lastMessage: "Hey! How's your LeetCode progress?",
-    time: "12:35 pm",
-    unread: true,
-    avatar: ""
-  },
-  {
-    id: "alex-chen",
-    name: "Alex Chen",
-    lastMessage: "Check out this dynamic programming solution...",
-    time: "11:20 am",
-    unread: false,
-    avatar: ""
-  },
-  {
-    id: "sarah-johnson",
-    name: "Sarah Johnson",
-    lastMessage: "Ready for today's daily challenge?",
-    time: "10:15 am",
-    unread: false,
-    avatar: "",
-    isAdmin: true
-  }
-]
-
 const filterTabs = [
   { id: "all", label: "All" },
-  { id: "unread", label: "Unread" },
-  { id: "groups", label: "My Groups" },
-  { id: "favorites", label: "Favorites" }
+  { id: "groups", label: "My Groups" }
 ]
 
 export function ChatSidebar({ selectedChat, onSelectChat, onShowDiscoverGroups, onShowProfile }: ChatSidebarProps) {
-  const [activeTab, setActiveTab] = useState("all")
+  const [activeTab, setActiveTab] = useState("groups")
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const { myGroups, loading: groupsLoading, error: groupsError, refetch } = useMyGroups()
@@ -90,19 +60,8 @@ export function ChatSidebar({ selectedChat, onSelectChat, onShowDiscoverGroups, 
 
     let data: DisplayItem[] = []
     
-    switch (activeTab) {
-      case "groups":
-        data = groupItems
-        break
-      case "unread":
-        data = mockChats.filter(chat => chat.unread)
-        break
-      case "favorites":
-        data = [] // Implement favorites functionality
-        break
-      default:
-        data = [...mockChats, ...groupItems]
-    }
+    // With backend integration, we show only groups for now
+    data = groupItems
 
     // Filter by search query
     if (searchQuery.trim()) {
@@ -127,9 +86,7 @@ export function ChatSidebar({ selectedChat, onSelectChat, onShowDiscoverGroups, 
       {/* Header */}
       <div className="p-4 border-b border-zinc-800">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-semibold text-white">
-            {activeTab === "groups" ? "My Groups" : "Chats"}
-          </h1>
+          <h1 className="text-xl font-semibold text-white">My Groups</h1>
           {activeTab === "groups" ? (
             <div className="flex gap-2">
               <Button 
@@ -206,7 +163,7 @@ export function ChatSidebar({ selectedChat, onSelectChat, onShowDiscoverGroups, 
                 <p className="mb-2">No results found</p>
                 <p className="text-sm text-gray-500">Try a different search term</p>
               </div>
-            ) : activeTab === "groups" ? (
+            ) : (
               <div>
                 <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="mb-2">No groups yet</p>
@@ -229,8 +186,6 @@ export function ChatSidebar({ selectedChat, onSelectChat, onShowDiscoverGroups, 
                   </Button>
                 </div>
               </div>
-            ) : (
-              "No chats available"
             )}
           </div>
         )}
@@ -287,17 +242,6 @@ export function ChatSidebar({ selectedChat, onSelectChat, onShowDiscoverGroups, 
       {/* Bottom Navigation */}
       <div className="p-4 border-t border-zinc-800">
         <div className="flex justify-around">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className={cn(
-              "text-gray-400 hover:text-white",
-              activeTab === "all" && "text-white"
-            )}
-            onClick={() => setActiveTab("all")}
-          >
-            <MessageCircle className="h-5 w-5" />
-          </Button>
           <Button 
             variant="ghost" 
             size="sm" 
