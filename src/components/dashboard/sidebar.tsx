@@ -21,10 +21,10 @@ export function Sidebar() {
       </div>
       <nav className="flex flex-1 flex-col items-center space-y-6">
         <Link
-          href="/dashboard"
+          href="/"
           className={cn(
             "flex h-10 w-10 items-center justify-center rounded-md transition-colors",
-            isActive("/dashboard")
+            isActive("/")
               ? "bg-zinc-800 text-amber-500"
               : "text-gray-400 hover:bg-zinc-800 hover:text-white"
           )}
