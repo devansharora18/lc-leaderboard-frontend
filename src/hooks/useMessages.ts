@@ -48,7 +48,6 @@ export const useMessages = ({ chatType, chatId, page = 1, limit = 30 }: UseMessa
     if (!content.trim()) return null;
     if (chatType !== 'group' || !normalizedIds.groupId) return null;
     const newMsg = await messagesService.createMessage(normalizedIds.groupId, { content: content.trim() });
-    setMessages(prev => [...prev, newMsg]);
     return newMsg;
   }, [chatType, normalizedIds.groupId]);
 
