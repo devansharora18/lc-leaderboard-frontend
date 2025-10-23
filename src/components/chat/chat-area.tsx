@@ -42,6 +42,7 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
   }>>([])
   const [inbox, setInbox] = useState<ChatMessage[]>([])
   const seenIdsRef = useRef<Set<string>>(new Set())
+  const messagesEndRef = useRef<HTMLDivElement | null>(null)
   const [groupDialogOpen, setGroupDialogOpen] = useState(false)
   const { user } = useUserProfile()
 
@@ -94,6 +95,11 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
     setInbox([])
     seenIdsRef.current.clear()
   }, [selectedChat])
+
+  // Auto-scroll to the latest message when the list changes
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }, [mappedMessages.length, selectedChat])
 
   // Socket join/leave and receive handler for group chats
   useEffect(() => {
@@ -326,6 +332,7 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
             )}
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Message Input */}

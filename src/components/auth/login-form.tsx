@@ -28,7 +28,7 @@ export default function LoginForm() {
         sessionStorage.removeItem('redirectAfterLogin');
         router.push(redirectPath);
       } else {
-        router.push("/dashboard"); // Default redirect to dashboard after successful login
+        router.push("/"); // Default redirect to dashboard after successful login
       }
     }
   }, [isAuthenticated, router])
@@ -51,6 +51,7 @@ export default function LoginForm() {
     e.preventDefault()
     
     if (!signInData.email || !signInData.password) {
+      toast.error("Please enter your email and password")
       return
     }
 
@@ -62,6 +63,8 @@ export default function LoginForm() {
     if (result.success) {
       // Success handling is done in useEffect above
       toast.success("Welcome back! Login successful.")
+    } else {
+      toast.error(result.error || "Login failed")
     }
   }
 

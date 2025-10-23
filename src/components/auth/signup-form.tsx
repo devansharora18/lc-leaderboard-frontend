@@ -29,7 +29,7 @@ export default function SignUpForm() {
         sessionStorage.removeItem('redirectAfterLogin');
         router.push(redirectPath);
       } else {
-        router.push("/dashboard"); // Default redirect to dashboard after successful signup
+        router.push("/"); // Default redirect to dashboard after successful signup
       }
     }
   }, [isAuthenticated, router])
@@ -52,6 +52,7 @@ export default function SignUpForm() {
     e.preventDefault()
     
     if (!signUpData.username || !signUpData.email || !signUpData.password) {
+      toast.error("Please fill out all fields")
       return
     }
 
@@ -64,6 +65,8 @@ export default function SignUpForm() {
     if (result.success) {
       // Success handling is done in useEffect above
       toast.success("Account created successfully! Welcome aboard!")
+    } else {
+      toast.error(result.error || "Signup failed")
     }
   }
 
