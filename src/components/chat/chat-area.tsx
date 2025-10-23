@@ -24,8 +24,9 @@ interface ChatAreaProps {
 }
 
 import { useMessages, useUserProfile } from "@/hooks"
-import { messagesService } from "@/services"
+import { messagesService, socketService } from "@/services"
 import type { Message as ChatMessage } from "@/types/message"
+import { GroupDetailsDialog } from "@/components/groups/group-details-dialog"
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProfile }: ChatAreaProps) {
@@ -39,6 +40,9 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
     createdAt: string
     status: 'pending' | 'sent' | 'delivered'
   }>>([])
+  const [inbox, setInbox] = useState<ChatMessage[]>([])
+  const seenIdsRef = useRef<Set<string>>(new Set())
+  const [groupDialogOpen, setGroupDialogOpen] = useState(false)
   const { user } = useUserProfile()
 
   const { messages, loading, error, sendMessage } = useMessages({
@@ -48,13 +52,25 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
     limit: 50,
   })
 
+  const groupId = selectedChat && selectedChat.startsWith('group-') ? selectedChat.replace('group-', '') : selectedChat || null
+
   const formatTime = (iso: string) => {
     const d = new Date(iso)
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
 
   const mappedMessages = useMemo(() => {
-    const base = messages.map((m: ChatMessage) => ({
+    // Dedupe base + inbox by id
+    const all: ChatMessage[] = []
+    const used = new Set<string>()
+    messages.forEach((m) => {
+      if (!used.has(m.id)) { used.add(m.id); all.push(m) }
+    })
+    inbox.forEach((m) => {
+      if (!used.has(m.id)) { used.add(m.id); all.push(m) }
+    })
+
+    const base = all.map((m: ChatMessage) => ({
       id: m.id,
       isUser: user?.id ? m.senderId === user.id : false,
       content: m.content,
@@ -71,11 +87,75 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
       _temp: !m.id,
     }))
     return [...base, ...pending]
-  }, [messages, user?.id, user?.username, outbox])
+  }, [messages, inbox, user?.id, user?.username, outbox])
 
   useEffect(() => {
     setOutbox([])
+    setInbox([])
+    seenIdsRef.current.clear()
   }, [selectedChat])
+
+  // Socket join/leave and receive handler for group chats
+  useEffect(() => {
+    const gid = groupId
+    if (chatType !== 'group' || !gid) return
+
+    let unsub: (() => void) | undefined
+    let active = true
+
+    ;(async () => {
+      await socketService.ensureConnected()
+      await socketService.joinGroup(gid)
+      unsub = socketService.onMessage((payload) => {
+        if (!active) return
+        if (payload.groupId !== gid) return
+        // Normalize payload into ChatMessage
+        const createdAt = (typeof payload.timestamp === 'string') ? new Date(payload.timestamp).toISOString() : payload.timestamp.toISOString()
+        const normalized: ChatMessage = {
+          id: payload.id,
+          content: payload.message,
+          senderId: payload.sender?.id,
+          groupId: payload.groupId,
+          createdAt,
+          updatedAt: createdAt,
+          sender: payload.sender ? { id: payload.sender.id, username: payload.sender.username } : undefined,
+        }
+        // Dedupe by id across seen set, base messages, and outbox
+        if (seenIdsRef.current.has(normalized.id)) return
+        // If this is my own message, try to match pending outbox by content and mark delivered
+        if (user?.id && normalized.senderId === user.id) {
+          // Find latest pending with same content
+          setOutbox((prev) => {
+            const idx = [...prev].reverse().findIndex((m) => m.status !== 'delivered' && m.content === normalized.content)
+            if (idx === -1) return prev
+            // reverse index to real index
+            const rIdx = prev.length - 1 - idx
+            const next = [...prev]
+            next[rIdx] = { ...next[rIdx], id: normalized.id, status: 'delivered' }
+            return next
+          })
+          // Also record id as seen to avoid adding to inbox
+          seenIdsRef.current.add(normalized.id)
+          return
+        }
+        // For others' messages, append to inbox if not already in base
+        setInbox((prev) => {
+          if (prev.some((m) => m.id === normalized.id)) return prev
+          seenIdsRef.current.add(normalized.id)
+          return [...prev, normalized]
+        })
+      })
+    })()
+
+    return () => {
+      active = false
+      if (unsub) unsub()
+      socketService.leaveGroup(gid)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatType, groupId])
+
+  
 
   if (!selectedChat) {
     return (
@@ -99,21 +179,28 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
     const createdAt = new Date().toISOString()
     setOutbox(prev => [...prev, { tempId, content: trimmed, createdAt, status: 'pending' }])
     try {
-      const real = await sendMessage(trimmed)
-      if (real) {
-        // Mark sent and attach real id
-        setOutbox(prev => prev.map(m => m.tempId === tempId ? { ...m, id: real.id, status: 'sent' } : m))
-        // Confirm delivery by checking message exists
-        setTimeout(async () => {
-          try {
-            if (real.id) {
-              await messagesService.getMessage(real.id)
-              setOutbox(prev => prev.map(m => m.tempId === tempId ? { ...m, status: 'delivered' } : m))
-            }
-          } catch {
-            // Ignore
-          }
-        }, 600)
+      let sentOk = false
+      if (chatType === 'group' && groupId) {
+        // Prefer Socket.IO send for realtime broadcast
+        sentOk = await socketService.sendMessage(groupId, trimmed, user ? { id: user.id, username: user.username || 'You' } : undefined)
+      }
+      // Fallback to REST if socket path failed or not group chat
+      if (!sentOk) {
+        const real = await sendMessage(trimmed)
+        if (real) {
+          setOutbox(prev => prev.map(m => m.tempId === tempId ? { ...m, id: real.id, status: 'sent' } : m))
+          setTimeout(async () => {
+            try {
+              if (real.id) {
+                await messagesService.getMessage(real.id)
+                setOutbox(prev => prev.map(m => m.tempId === tempId ? { ...m, status: 'delivered' } : m))
+              }
+            } catch {}
+          }, 600)
+        }
+      } else {
+        // With socket path, we'll mark delivered when echo arrives; mark as sent for now
+        setOutbox(prev => prev.map(m => m.tempId === tempId ? { ...m, status: 'sent' } : m))
       }
     } catch (e) {
       // Restore input on failure
@@ -127,21 +214,28 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
   }
 
   return (
+    <>
     <div className="flex-1 flex flex-col bg-black">
       {/* Chat Header */}
       <div className="flex items-center justify-between p-4 bg-zinc-900 border-b border-zinc-800">
-        <div 
-          className="flex items-center cursor-pointer"
-          onClick={onShowProfile}
-        >
-          <Avatar className="h-10 w-10 mr-3">
+        <div className="flex items-center">
+          <Avatar 
+            className="h-10 w-10 mr-3 cursor-pointer"
+            onClick={() => {
+              if (chatType === 'group' && groupId) {
+                setGroupDialogOpen(true)
+              } else {
+                onShowProfile()
+              }
+            }}
+          >
             <AvatarFallback className="bg-zinc-700 text-white">
               {displayName.split(' ').map(n => n[0]).join('')}
             </AvatarFallback>
           </Avatar>
           <div>
             <h2 className="font-semibold text-white">{displayName}</h2>
-            <span className="text-xs text-gray-400">Online</span>
+            {/* <span className="text-xs text-gray-400">Online</span> */}
           </div>
         </div>
         
@@ -276,5 +370,11 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
         </div>
       </div>
     </div>
+    <GroupDetailsDialog
+      groupId={chatType === 'group' ? groupId : null}
+      open={groupDialogOpen}
+      onOpenChange={setGroupDialogOpen}
+    />
+    </>
   )
 }

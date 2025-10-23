@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 import { useMyGroups } from "@/hooks"
 import { CreateGroupDialog } from "@/components/groups/create-group-dialog"
+import { GroupDetailsDialog } from "@/components/groups/group-details-dialog"
 
 interface ChatSidebarProps {
   selectedChat: string | null
@@ -46,6 +47,8 @@ export function ChatSidebar({ selectedChat, onSelectChat, onShowDiscoverGroups, 
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const { myGroups, loading: groupsLoading, error: groupsError, refetch } = useMyGroups()
+  const [groupDialogOpen, setGroupDialogOpen] = useState(false)
+  const [groupDialogId, setGroupDialogId] = useState<string | null>(null)
 
   const getDisplayData = (): DisplayItem[] => {
     const groupItems: DisplayItem[] = myGroups.map(group => ({
@@ -203,7 +206,17 @@ export function ChatSidebar({ selectedChat, onSelectChat, onShowDiscoverGroups, 
               selectedChat === (item.isGroup ? `group-${item.id}` : item.id) ? "bg-zinc-800" : ""
             )}
           >
-            <Avatar className="h-12 w-12 mr-3">
+            <Avatar 
+              className="h-12 w-12 mr-3"
+              onClick={(e) => {
+                if (item.isGroup) {
+                  e.stopPropagation()
+                  setGroupDialogId(item.id)
+                  setGroupDialogOpen(true)
+                }
+              }}
+              data-testid={item.isGroup ? `group-avatar-${item.id}` : undefined}
+            >
               <AvatarFallback className={cn(
                 "text-white",
                 item.isGroup ? "bg-blue-600" : "bg-zinc-700"
@@ -275,6 +288,16 @@ export function ChatSidebar({ selectedChat, onSelectChat, onShowDiscoverGroups, 
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
         onGroupCreated={handleGroupCreated}
+      />
+
+      {/* Group Details Popup */}
+      <GroupDetailsDialog
+        groupId={groupDialogId}
+        open={groupDialogOpen}
+        onOpenChange={(open) => {
+          setGroupDialogOpen(open)
+          if (!open) setGroupDialogId(null)
+        }}
       />
     </div>
   )
