@@ -39,7 +39,7 @@ export function DaySelector() {
   }, [user?.streak]);
 
   return (
-    <div className="grid grid-cols-13 gap-4 p-4">
+    <div className="grid grid-cols-10 gap-4 py-4">
       {/* Card 1: Current Streak - 1 colspan */}
       <div className="col-span-2 flex flex-col items-center justify-center bg-zinc-900 rounded-lg p-4 h-28">
         <div className="flex flex-col items-center gap-2 mb-1">
@@ -133,7 +133,7 @@ export function DaySelector() {
       </div>
 
       {/* Card 3: Task Selector - 4 colspan */}
-      <div className="col-span-3 flex flex-col items-center justify-between bg-zinc-900 rounded-lg p-4 h-28">
+      {/* <div className="col-span-3 flex flex-col items-center justify-between bg-zinc-900 rounded-lg p-4 h-28">
         <div className="flex items-center gap-4">
           <div className="text-sm font-medium text-white">10. Regular Expression Matching</div>
           <div className="flex items-center gap-2">
@@ -151,7 +151,7 @@ export function DaySelector() {
             Resume →
           </button>
         </div>
-      </div>
+      </div> */}
     </div>
   )
 }

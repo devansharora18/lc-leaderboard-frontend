@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useGroupDetails, useGroupMembers, useGroupActions, useGroupManagement } from '@/hooks'
+import { dashboardService } from '@/services/dashboard.service'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -33,10 +34,31 @@ export default function GroupDetailsPage() {
   const { removeMember, updateMemberRole, loading: managementLoading } = useGroupManagement()
   
   const [activeTab, setActiveTab] = useState<'overview' | 'members' | 'leaderboard'>('overview')
+  const [dashMap, setDashMap] = useState<Record<string, { totalSolved: number; streak: number }>>({})
+
+  useEffect(() => {
+    let cancelled = false
+    const run = async () => {
+      try {
+        const res = await dashboardService.getLeaderboard()
+        if (!cancelled && res && res.success) {
+          const map: Record<string, { totalSolved: number; streak: number }> = {}
+          for (const u of res.data.leaderboard) {
+            map[u.username.toLowerCase()] = { totalSolved: u.totalSolved, streak: u.streak }
+          }
+          setDashMap(map)
+        }
+      } catch {
+        // ignore; fallback to member fields/xp
+      }
+    }
+    run()
+    return () => { cancelled = true }
+  }, [])
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900">
+  <div className="min-h-screen bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-900">
         <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse">
             <div className="h-8 bg-zinc-700 rounded w-1/4 mb-4"></div>
@@ -55,7 +77,7 @@ export default function GroupDetailsPage() {
 
   if (error || !group) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900">
+  <div className="min-h-screen bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-900">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center py-12">
             <p className="text-red-400 mb-4">{error || 'Group not found'}</p>
@@ -124,7 +146,7 @@ export default function GroupDetailsPage() {
   const isMember = !!currentUserMember
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900">
+  <div className="min-h-screen bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-900">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
@@ -258,7 +280,7 @@ export default function GroupDetailsPage() {
 
         {/* Tab Content */}
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="min-h-screen bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-900">
             <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-white mb-4">Group Stats</h3>
               <div className="space-y-3">
@@ -277,7 +299,7 @@ export default function GroupDetailsPage() {
               </div>
             </div>
 
-            <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-6">
+              <div className="min-h-screen bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-900">
               <h3 className="text-lg font-semibold text-white mb-4">Recent Activity</h3>
               <div className="space-y-3 text-gray-400">
                 <p className="text-sm">No recent activity</p>
@@ -291,7 +313,7 @@ export default function GroupDetailsPage() {
                   .sort((a, b) => b.xp - a.xp)
                   .slice(0, 3)
                   .map((member, index) => (
-                    <div key={member.id} className="flex items-center gap-3">
+            <div className="min-h-screen bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-900">
                       <span className="text-amber-500 font-bold">#{index + 1}</span>
                       <Avatar className="h-8 w-8">
                         <AvatarFallback className="bg-zinc-700 text-xs">
@@ -395,8 +417,19 @@ export default function GroupDetailsPage() {
             </div>
             <div className="divide-y divide-zinc-700">
               {members
-                .sort((a, b) => b.xp - a.xp)
-                .map((member, index) => (
+                .map((m) => {
+                  const uname = (m.user.username || '').toLowerCase()
+                  const entry = dashMap[uname]
+                  const solved = entry?.totalSolved ?? 0
+                  const streak = entry?.streak ?? 0
+                  return { m, solved, streak }
+                })
+                .sort((a, b) => {
+                  if (b.solved !== a.solved) return b.solved - a.solved
+                  if (b.streak !== a.streak) return b.streak - a.streak
+                  return a.m.user.username.localeCompare(b.m.user.username)
+                })
+                .map(({ m: member, solved, streak }, index) => (
                   <div key={member.id} className="p-6 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className={cn(
@@ -419,7 +452,7 @@ export default function GroupDetailsPage() {
                           {getRoleIcon(member.role)}
                         </div>
                         <div className="flex items-center gap-4 text-sm text-gray-400">
-                          <span>Streak: {member.user.streak} days</span>
+                          <span>Streak: {streak} days</span>
                           {member.user.lastSolvedAt && (
                             <span>Last solved: {new Date(member.user.lastSolvedAt).toLocaleDateString()}</span>
                           )}
@@ -427,8 +460,8 @@ export default function GroupDetailsPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xl font-bold text-white">{member.xp}</div>
-                      <div className="text-sm text-gray-400">XP</div>
+                      <div className="text-xl font-bold text-white">{solved}</div>
+                      <div className="text-sm text-gray-400">Solved</div>
                     </div>
                   </div>
                 ))}

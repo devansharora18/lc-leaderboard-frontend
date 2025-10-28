@@ -6,6 +6,7 @@ export interface LeaderboardUser {
   leetcodeVerified: boolean;
   streak: number;
   lastSolvedAt: string | null;
+  totalSolved?: number;
 }
 
 export interface LeaderboardResponse {

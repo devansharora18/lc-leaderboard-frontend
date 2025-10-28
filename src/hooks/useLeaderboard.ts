@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { userService } from '../services/user.service';
-import { LeaderboardEntry, LeaderboardUser } from '../types/leaderboard';
+import { LeaderboardEntry } from '../types/leaderboard';
+import { dashboardService } from '../services/dashboard.service';
 
 export const useLeaderboard = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -12,25 +12,22 @@ export const useLeaderboard = () => {
       setIsLoading(true);
       setError(null);
       
-      const response = await userService.getLeaderboard();
+      const response = await dashboardService.getLeaderboard();
       
       if (response.success) {
-        // Transform users to leaderboard entries with ranking
-        const sortedUsers = response.data.users
-          .sort((a, b) => {
-            // Primary sort: streak descending
-            if (b.streak !== a.streak) {
-              return b.streak - a.streak;
-            }
-            // Secondary sort: username ascending for consistency
-            return a.username.localeCompare(b.username);
-          })
-          .map((user: LeaderboardUser, index: number) => ({
-            ...user,
-            rank: index + 1,
-          }));
-        
-        setLeaderboard(sortedUsers);
+        const entries: LeaderboardEntry[] = response.data.leaderboard.map((u, index) => ({
+          id: u.username,
+          username: u.username,
+          email: '',
+          leetcodeHandle: '',
+          leetcodeVerified: true,
+          streak: u.streak,
+          lastSolvedAt: null,
+          totalSolved: u.totalSolved,
+          rank: index + 1,
+        }));
+
+        setLeaderboard(entries);
       } else {
         setError(response.message || 'Failed to fetch leaderboard');
       }

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Users, Trophy } from "lucide-react"
 import { groupsService } from "@/services"
+import { dashboardService } from "@/services/dashboard.service"
 import type { Group, GroupMember } from "@/types/groups"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
@@ -18,6 +19,7 @@ export function GroupDetailsDialog({ groupId, open, onOpenChange }: GroupDetails
   const [members, setMembers] = useState<GroupMember[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [dashMap, setDashMap] = useState<Record<string, { totalSolved: number; streak: number }>>({})
 
   const leaderboard = useMemo(() => {
     if (!members || members.length === 0) return [] as Array<{
@@ -28,23 +30,17 @@ export function GroupDetailsDialog({ groupId, open, onOpenChange }: GroupDetails
       xp: number;
     }>;
 
-    const getSolvedFromUser = (u: any): number => {
-	  console.log(u)
-      const raw = u?.totalSolved ?? u?.solved ?? u?.problemsSolved
-      return typeof raw === 'number' && isFinite(raw) ? raw : 0
-    }
-
-    const enriched = members.map((m) => ({
-      username: m.user.username,
-      // Prefer user's total solved if provided by backend; otherwise use per-group xp as solved fallback
-      solved: (() => {
-        const fromUser = getSolvedFromUser(m.user as any)
-        if (fromUser > 0) return fromUser
-        return typeof m.xp === 'number' && isFinite(m.xp) ? m.xp : 0
-      })(),
-      streak: m.user.streak,
-      xp: typeof m.xp === 'number' ? m.xp : 0,
-    }))
+    const enriched = members.map((m) => {
+      const username = m.user.username || ''
+      const key = username.toLowerCase()
+      const entry = dashMap[key]
+      return {
+        username,
+        solved: entry?.totalSolved ?? 0,
+        streak: entry?.streak ?? 0,
+        xp: typeof m.xp === 'number' ? m.xp : 0,
+      }
+    })
 
     const sorted = enriched.sort((a, b) => {
       if (b.solved !== a.solved) return b.solved - a.solved
@@ -56,7 +52,7 @@ export function GroupDetailsDialog({ groupId, open, onOpenChange }: GroupDetails
       rank: idx + 1,
       ...row,
     }))
-  }, [members])
+  }, [members, dashMap])
 
   useEffect(() => {
     let cancelled = false
@@ -65,13 +61,23 @@ export function GroupDetailsDialog({ groupId, open, onOpenChange }: GroupDetails
       setLoading(true)
       setError(null)
       try {
-        const [g, m] = await Promise.all([
+        const [g, m, dash] = await Promise.all([
           groupsService.getGroupDetails(groupId),
           groupsService.getGroupMembers(groupId),
+          dashboardService.getLeaderboard().catch(() => null),
         ])
         if (!cancelled) {
           setGroup(g.data)
           setMembers(m.data)
+          if (dash && dash.success) {
+            const map: Record<string, { totalSolved: number; streak: number }> = {}
+            for (const u of dash.data.leaderboard) {
+              map[u.username.toLowerCase()] = { totalSolved: u.totalSolved, streak: u.streak }
+            }
+            setDashMap(map)
+          } else {
+            setDashMap({})
+          }
         }
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load group")

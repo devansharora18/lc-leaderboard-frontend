@@ -32,16 +32,7 @@ export default function Dashboard() {
           {/* Day Selector */}
           <DaySelector />
 
-          {/* Search Bar */}
-          <div className="relative mb-6 mt-6">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-            <Input
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-10 rounded-md border-zinc-800 bg-zinc-900 pl-10 text-white placeholder:text-gray-500 focus:border-amber-500 focus:ring-amber-500"
-            />
-          </div>
+          
 
           {/* Leaderboard */}
           <div className="mb-6">

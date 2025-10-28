@@ -13,6 +13,9 @@ export interface GroupMember {
     leetcodeVerified: boolean;
     streak: number;
     lastSolvedAt: string | null;
+    totalSolved?: number;
+    solved?: number;
+    problemsSolved?: number;
   };
 }
 
