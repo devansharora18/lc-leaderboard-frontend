@@ -74,9 +74,7 @@ export function UserHeader() {
       </div>
 
       {/* Invite Friends Button */}
-      <button className="absolute right-4 top-4 rounded-md bg-amber-500 px-3 py-1 text-sm font-medium text-black hover:bg-amber-600">
-        Invite Friends
-      </button>
+      
     </div>
   )
 }

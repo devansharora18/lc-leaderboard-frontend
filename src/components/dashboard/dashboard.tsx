@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
+// import { Search } from "lucide-react";
+// import { Input } from "@/components/ui/input";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { UserHeader } from "@/components/dashboard/user-header";
 import { DaySelector } from "@/components/dashboard/day-selector";
 import { Leaderboard } from "@/components/dashboard/leaderboard";
 import { ActivityList } from "@/components/dashboard/activity-list";
-import { ActivityGauge } from "@/components/dashboard/activity-gauge";
-import { WeeklySummary } from "@/components/dashboard/weekly-summary";
-import { MonthlyStats } from "@/components/dashboard/monthly-stats";
-import { ActivityCalendar } from "@/components/dashboard/activity-calendar";
-import { YearlyActivity } from "@/components/dashboard/yearly-activity";
+// import { ActivityGauge } from "@/components/dashboard/activity-gauge";
+// import { WeeklySummary } from "@/components/dashboard/weekly-summary";
+// import { MonthlyStats } from "@/components/dashboard/monthly-stats";
+// import { ActivityCalendar } from "@/components/dashboard/activity-calendar";
+// import { YearlyActivity } from "@/components/dashboard/yearly-activity";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -40,18 +40,18 @@ export default function Dashboard() {
           </div>
 
           {/* Activity Section */}
-          <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="mb-6">
             <ActivityList />
-            <ActivityGauge />
-            <WeeklySummary />
+            {/* <ActivityGauge />
+            <WeeklySummary /> */}
           </div>
 
           {/* Monthly Stats */}
-          <div className="mb-6">
+          {/* <div className="mb-6">
             <MonthlyStats />
-          </div>
+          </div> */}
 
-          {/* Calendar - Two Column Layout */}
+          {/* Calendar - Two Column Layout
           <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
             <ActivityCalendar />
             <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-6">
@@ -60,10 +60,11 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Yearly Activity */}
+          
           <div className="mb-6">
             <YearlyActivity />
-          </div>
+          </div> 
+          */}
         </div>
       </div>
     </div>
