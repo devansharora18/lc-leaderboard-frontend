@@ -2,9 +2,11 @@
 
 import { useUserProfile } from '../../hooks';
 import { useMemo } from 'react';
+import { useDailyQuestion } from '@/hooks/useDailyQuestion';
 
 export function DaySelector() {
   const { user, loading } = useUserProfile();
+  const { question, loading: dqLoading, error: dqError } = useDailyQuestion();
 
   // Generate days array based on current date
   const days = useMemo(() => {
@@ -39,7 +41,7 @@ export function DaySelector() {
   }, [user?.streak]);
 
   return (
-    <div className="grid grid-cols-10 gap-4 py-4">
+    <div className="grid grid-cols-12 gap-4 py-4">
       {/* Card 1: Current Streak - 1 colspan */}
       <div className="col-span-2 flex flex-col items-center justify-center bg-zinc-900 rounded-lg p-4 h-28">
         <div className="flex flex-col items-center gap-2 mb-1">
@@ -52,8 +54,8 @@ export function DaySelector() {
         <div className="text-xs text-gray-500">Current Streak</div>
       </div>
 
-      {/* Card 2: Date Selector - 8 colspan */}
-      <div className="col-span-8 flex items-center bg-zinc-900 rounded-lg p-4 h-28">
+      {/* Card 2: Date Selector - 7 colspan */}
+      <div className="col-span-7 flex items-center bg-zinc-900 rounded-lg p-4 h-28">
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-3">
             <div className="text-sm font-medium text-gray-300">
@@ -132,26 +134,39 @@ export function DaySelector() {
         </div>
       </div>
 
-      {/* Card 3: Task Selector - 4 colspan */}
-      {/* <div className="col-span-3 flex flex-col items-center justify-between bg-zinc-900 rounded-lg p-4 h-28">
-        <div className="flex items-center gap-4">
-          <div className="text-sm font-medium text-white">10. Regular Expression Matching</div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 rounded-md bg-zinc-800 px-2 py-1">
-              <span className="text-xs font-medium text-gray-400">HARD</span>
+      {/* Card 3: Daily Question - 3 colspan */}
+      <div className="col-span-3 flex flex-col justify-between bg-zinc-900 rounded-lg p-4 h-28">
+        <div className="flex items-center justify-between">
+          <div className="text-xs uppercase tracking-wide text-gray-400">Daily Question</div>
+          {question?.difficulty && (
+            <div className="rounded-md bg-zinc-800 px-2 py-0.5 text-[10px] text-gray-300">
+              {question.difficulty}
             </div>
-            <div className="flex items-center gap-1 rounded-md bg-amber-500 px-2 py-1">
-              <span className="text-xs font-medium text-black">63%</span>
-            </div>
-          </div>
+          )}
         </div>
-        
+        <div className="line-clamp-2 text-sm font-medium text-white">
+          {dqLoading ? 'Loading…' : dqError ? 'Unavailable' : (question?.title || '—')}
+        </div>
         <div className="flex items-center gap-2">
-          <button className="px-3 py-1 text-xs font-medium text-amber-500 bg-zinc-800 rounded hover:bg-zinc-700">
-            Resume →
-          </button>
+          {question?.link ? (
+            <a
+              href={question.link}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="px-3 py-1 text-xs font-medium text-amber-500 bg-zinc-800 rounded hover:bg-zinc-700"
+            >
+              Open →
+            </a>
+          ) : (
+            <button
+              disabled
+              className="px-3 py-1 text-xs font-medium text-gray-500 bg-zinc-800 rounded"
+            >
+              Open →
+            </button>
+          )}
         </div>
-      </div> */}
+      </div>
     </div>
   )
 }

@@ -6,3 +6,5 @@ export { useLeaderboard } from './useLeaderboard';
 export { useUserProfile } from './useUserProfile';
 export * from './useGroups';
 export { useMessages } from './useMessages';
+export { useActivities } from './useActivities';
+export { useDailyQuestion } from './useDailyQuestion';
