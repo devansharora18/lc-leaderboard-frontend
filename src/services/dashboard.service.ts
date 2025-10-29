@@ -16,14 +16,49 @@ interface DashboardLeaderboardResponse {
   };
 }
 
+interface DashboardSubmission {
+  title?: string;
+  titleSlug?: string;
+  timestamp?: number | string;
+  time?: string | number;
+  submissionTime?: number | string;
+  status?: string;
+  statusDisplay?: string;
+  status_display?: string;
+  verdict?: string;
+}
+
 interface DashboardSubmissionsResponse {
   success: boolean;
   message: string;
   timestamp: string;
   data: {
-    submissions: any[];
+    submissions: DashboardSubmission[];
     count: number;
     limit: number;
+  };
+}
+
+interface DailyQuestion {
+  questionLink?: string;
+  date?: string;
+  questionTitle?: string;
+  title?: string;
+  difficulty?: string;
+  level?: string;
+  titleSlug?: string;
+  questionTitleSlug?: string;
+  slug?: string;
+  link?: string;
+  url?: string;
+  question?: {
+    title?: string;
+    questionTitle?: string;
+    titleSlug?: string;
+    slug?: string;
+    difficulty?: string;
+    link?: string;
+    url?: string;
   };
 }
 
@@ -32,7 +67,7 @@ interface DailyQuestionResponse {
   message: string;
   timestamp: string;
   data: {
-    dailyQuestion: any;
+    dailyQuestion: DailyQuestion;
   };
 }
 

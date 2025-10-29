@@ -28,7 +28,6 @@ import { messagesService, socketService } from "@/services"
 import type { Message as ChatMessage } from "@/types/message"
 import { GroupDetailsDialog } from "@/components/groups/group-details-dialog"
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProfile }: ChatAreaProps) {
   const [newMessage, setNewMessage] = useState("")
   const [isSending, setIsSending] = useState(false)
@@ -60,7 +59,17 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
 
-  const mappedMessages = useMemo(() => {
+  type MappedMessage = {
+    id: string
+    isUser: boolean
+    content: string
+    timestamp: string
+    senderName?: string
+    _status?: 'pending' | 'sent' | 'delivered'
+    _temp?: boolean
+  }
+
+  const mappedMessages = useMemo<MappedMessage[]>(() => {
     // Dedupe base + inbox by id
     const all: ChatMessage[] = []
     const used = new Set<string>()
@@ -71,14 +80,14 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
       if (!used.has(m.id)) { used.add(m.id); all.push(m) }
     })
 
-    const base = all.map((m: ChatMessage) => ({
+    const base: MappedMessage[] = all.map((m: ChatMessage) => ({
       id: m.id,
       isUser: user?.id ? m.senderId === user.id : false,
       content: m.content,
       timestamp: formatTime(m.createdAt),
       senderName: m.sender?.username,
     }))
-    const pending = outbox.map((m) => ({
+    const pending: MappedMessage[] = outbox.map((m) => ({
       id: m.id || m.tempId,
       isUser: true,
       content: m.content,
@@ -208,7 +217,7 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
         // With socket path, we'll mark delivered when echo arrives; mark as sent for now
         setOutbox(prev => prev.map(m => m.tempId === tempId ? { ...m, status: 'sent' } : m))
       }
-    } catch (e) {
+    } catch {
       // Restore input on failure
       setNewMessage(trimmed)
       // Remove temp bubble
@@ -280,7 +289,7 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
         {error && (
           <div className="text-center text-red-400">{error}</div>
         )}
-        {!loading && !error && mappedMessages.map((message: any) => (
+        {!loading && !error && mappedMessages.map((message) => (
           <div key={message.id} className="flex flex-col">
             {/* Sender Label */}
             <div className={cn(

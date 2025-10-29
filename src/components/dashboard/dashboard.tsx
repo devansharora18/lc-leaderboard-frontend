@@ -1,6 +1,4 @@
 "use client";
-
-import { useState } from "react";
 // import { Search } from "lucide-react";
 // import { Input } from "@/components/ui/input";
 import { Sidebar } from "@/components/dashboard/sidebar";
@@ -15,7 +13,6 @@ import { ActivityList } from "@/components/dashboard/activity-list";
 // import { YearlyActivity } from "@/components/dashboard/yearly-activity";
 
 export default function Dashboard() {
-  const [searchQuery, setSearchQuery] = useState("");
 
   return (
     <div className="flex h-screen bg-black text-white">

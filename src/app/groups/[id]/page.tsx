@@ -313,7 +313,7 @@ export default function GroupDetailsPage() {
                   .sort((a, b) => b.xp - a.xp)
                   .slice(0, 3)
                   .map((member, index) => (
-            <div className="min-h-screen bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-900">
+            <div key={member.id} className="flex items-center gap-3">
                       <span className="text-amber-500 font-bold">#{index + 1}</span>
                       <Avatar className="h-8 w-8">
                         <AvatarFallback className="bg-zinc-700 text-xs">

@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react'
 import { useLeaderboard } from '../../hooks'
 import { RefreshCw, ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { LeaderboardSkeleton } from './leaderboard-skeleton'
-import { formatRelativeTime } from '../../lib/date-utils'
 import { Input } from '@/components/ui/input'
 
 export function Leaderboard() {

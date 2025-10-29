@@ -111,7 +111,6 @@ export function ChatInterface() {
         selectedChat={selectedChat}
         onSelectChat={handleSelectChat}
         onShowDiscoverGroups={handleShowDiscoverGroups}
-        onShowProfile={handleShowProfile}
       />
       
       {/* Main Content Area */}

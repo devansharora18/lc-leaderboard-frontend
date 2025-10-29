@@ -1,18 +1,5 @@
 export function ActivityCalendar() {
-  // Generate calendar data for May 2025
-  const generateCalendarData = () => {
-    const days = []
-    for (let i = 1; i <= 31; i++) {
-      days.push({
-        day: i,
-        isCurrentMonth: i >= 1 && i <= 31,
-        isToday: i === 26,
-      })
-    }
-    return days
-  }
-
-  const calendarDays = generateCalendarData()
+  // Calendar rendering is static for now; dynamic data can be wired later.
 
   return (
     <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-6">

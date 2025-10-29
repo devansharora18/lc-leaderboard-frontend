@@ -6,11 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { 
-  MessageCircle, 
   Users, 
-  Heart, 
-  Gift, 
-  Settings,
   Plus,
   Search,
   Globe
@@ -23,7 +19,6 @@ interface ChatSidebarProps {
   selectedChat: string | null
   onSelectChat: (chatId: string, type: 'user' | 'group', name?: string) => void
   onShowDiscoverGroups: () => void
-  onShowProfile: () => void
 }
 
 interface DisplayItem {
@@ -42,7 +37,7 @@ const filterTabs = [
   { id: "groups", label: "My Groups" }
 ]
 
-export function ChatSidebar({ selectedChat, onSelectChat, onShowDiscoverGroups, onShowProfile }: ChatSidebarProps) {
+export function ChatSidebar({ selectedChat, onSelectChat, onShowDiscoverGroups }: ChatSidebarProps) {
   const [activeTab, setActiveTab] = useState("groups")
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -252,36 +247,6 @@ export function ChatSidebar({ selectedChat, onSelectChat, onShowDiscoverGroups, 
         ))}
       </div>
 
-      {/* Bottom Navigation */}
-      <div className="p-4 border-t border-zinc-800">
-        <div className="flex justify-around">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className={cn(
-              "text-gray-400 hover:text-white",
-              activeTab === "groups" && "text-white"
-            )}
-            onClick={() => setActiveTab("groups")}
-          >
-            <Users className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-            <Heart className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-            <Gift className="h-5 w-5" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-gray-400 hover:text-white"
-            onClick={onShowProfile}
-          >
-            <Settings className="h-5 w-5" />
-          </Button>
-        </div>
-      </div>
 
       {/* Create Group Dialog */}
       <CreateGroupDialog

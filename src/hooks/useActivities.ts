@@ -10,6 +10,18 @@ export interface ActivityItem {
   progress: number; // 0-100
 }
 
+interface RawSubmission {
+  title?: string;
+  titleSlug?: string;
+  timestamp?: number | string;
+  time?: string | number;
+  submissionTime?: number | string;
+  status?: string;
+  statusDisplay?: string;
+  status_display?: string;
+  verdict?: string;
+}
+
 export const useActivities = (limit = 10) => {
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -18,7 +30,7 @@ export const useActivities = (limit = 10) => {
   useEffect(() => {
     let cancelled = false;
 
-    const normalize = (s: any): ActivityItem => {
+    const normalize = (s: RawSubmission): ActivityItem => {
       const title: string = s?.title || s?.titleSlug?.toString()?.replace(/-/g, ' ') || 'Unknown';
       const ts: number | string | undefined = s?.timestamp ?? s?.time ?? s?.submissionTime;
       const timestamp = typeof ts === 'number' ? ts * 1000 : (typeof ts === 'string' ? Date.parse(ts) : Date.now());
