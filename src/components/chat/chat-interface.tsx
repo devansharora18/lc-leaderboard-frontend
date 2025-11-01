@@ -90,7 +90,7 @@ export function ChatInterface() {
               onShowProfile={handleShowProfile}
             />
             {showProfile && (
-              <div className="w-80 shrink-0">
+              <div className="hidden md:block w-80 shrink-0">
                 <ProfilePanel 
                   onClose={() => setShowProfile(false)}
                 />
@@ -102,20 +102,44 @@ export function ChatInterface() {
   }
 
   return (
-    <div className="flex h-screen bg-black text-white">
-      {/* Main App Sidebar */}
+    <div className="flex h-screen bg-black text-white pb-16 md:pb-0">
+      {/* Main App Sidebar (left rail) */}
       <Sidebar />
-      
-      {/* Chat Sidebar */}
-      <ChatSidebar 
-        selectedChat={selectedChat}
-        onSelectChat={handleSelectChat}
-        onShowDiscoverGroups={handleShowDiscoverGroups}
-      />
-      
-      {/* Main Content Area */}
-      <div className="flex-1 flex">
-        {renderMainContent()}
+
+      {/* Desktop layout: sidebar + content */}
+      <div className="hidden md:flex flex-1">
+        <ChatSidebar 
+          selectedChat={selectedChat}
+          onSelectChat={handleSelectChat}
+          onShowDiscoverGroups={handleShowDiscoverGroups}
+        />
+        <div className="flex-1 flex">
+          {renderMainContent()}
+        </div>
+      </div>
+
+      {/* Mobile layout: either list, discover, or chat */}
+      <div className="flex-1 md:hidden flex min-h-0">
+        {currentView === 'discover' ? (
+          <GroupDiscovery 
+            onBack={handleBackToChat}
+            onGroupJoined={handleGroupJoined}
+          />
+        ) : selectedChat ? (
+          <ChatArea 
+            selectedChat={selectedChat}
+            chatName={selectedChat ? (chatData[selectedChat]?.name || selectedChat) : null}
+            chatType={selectedChat ? (chatData[selectedChat]?.type || 'user') : 'user'}
+            onShowProfile={handleShowProfile}
+            onBack={() => setSelectedChat(null)}
+          />
+        ) : (
+          <ChatSidebar 
+            selectedChat={selectedChat}
+            onSelectChat={handleSelectChat}
+            onShowDiscoverGroups={handleShowDiscoverGroups}
+          />
+        )}
       </div>
     </div>
   )

@@ -41,9 +41,9 @@ export function DaySelector() {
   }, [user?.streak]);
 
   return (
-    <div className="grid grid-cols-12 gap-4 py-4">
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 py-4">
       {/* Card 1: Current Streak - 1 colspan */}
-      <div className="col-span-2 flex flex-col items-center justify-center bg-zinc-900 rounded-lg p-4 h-28">
+      <div className="col-span-12 md:col-span-2 order-3 md:order-1 flex flex-col items-center justify-center bg-zinc-900 rounded-lg p-4 h-28">
         <div className="flex flex-col items-center gap-2 mb-1">
           <div className="text-2xl">🔥</div>
           <div className="text-2xl font-bold text-white">
@@ -55,8 +55,8 @@ export function DaySelector() {
       </div>
 
       {/* Card 2: Date Selector - 7 colspan */}
-      <div className="col-span-7 flex items-center bg-zinc-900 rounded-lg p-4 h-28">
-        <div className="flex items-center justify-between w-full">
+      <div className="col-span-12 md:col-span-7 order-2 md:order-2 flex items-center bg-zinc-900 rounded-lg p-4 h-28 min-w-0">
+        <div className="flex items-center justify-between w-full min-w-0">
           <div className="flex items-center gap-3">
             <div className="text-sm font-medium text-gray-300">
               {new Date().toLocaleDateString('en-US', { 
@@ -67,9 +67,10 @@ export function DaySelector() {
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          {/* Horizontal scroller for days on mobile */}
+          <div className="flex items-center gap-2 overflow-x-auto md:overflow-visible pl-1 -mr-1 md:pl-0 md:mr-0">
             {/* Left Navigation Arrow */}
-            <button className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-zinc-800 hover:text-white">
+            <button className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-zinc-800 hover:text-white shrink-0">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -83,7 +84,7 @@ export function DaySelector() {
             </button>
 
             {/* Day circles */}
-            <div className="flex gap-1">
+            <div className="flex gap-1 shrink-0">
               {days.map((day, index) => (
                 <div key={index} className="flex flex-col items-center">
                   <div
@@ -118,7 +119,7 @@ export function DaySelector() {
             </div>
 
             {/* Right Navigation Arrow */}
-            <button className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-zinc-800 hover:text-white">
+            <button className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-zinc-800 hover:text-white shrink-0">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -135,7 +136,7 @@ export function DaySelector() {
       </div>
 
       {/* Card 3: Daily Question - 3 colspan */}
-      <div className="col-span-3 flex flex-col justify-between bg-zinc-900 rounded-lg p-4 h-28">
+      <div className="col-span-12 md:col-span-3 order-1 md:order-3 flex flex-col justify-between bg-zinc-900 rounded-lg p-4 h-28">
         <div className="flex items-center justify-between">
           <div className="text-xs uppercase tracking-wide text-gray-400">Daily Question</div>
           {question?.difficulty && (

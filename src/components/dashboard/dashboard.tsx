@@ -15,7 +15,7 @@ import { ActivityList } from "@/components/dashboard/activity-list";
 export default function Dashboard() {
 
   return (
-    <div className="flex h-screen bg-black text-white">
+    <div className="flex h-screen bg-black text-white pb-16 md:pb-0">
       {/* Sidebar */}
       <Sidebar />
 
@@ -25,20 +25,26 @@ export default function Dashboard() {
         <UserHeader />
 
         {/* Dashboard Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {/* Day Selector */}
-          <DaySelector />
+          <div className="-mx-4 sm:mx-0 px-4 sm:px-0 overflow-x-auto sm:overflow-visible mb-6 sm:mb-8">
+            <DaySelector />
+          </div>
 
           
 
           {/* Leaderboard */}
-          <div className="mb-6">
-            <Leaderboard />
+          <div className="mb-6 -mx-4 sm:mx-0 px-4 sm:px-0 overflow-x-auto sm:overflow-visible">
+            <div className="min-w-0">
+              <Leaderboard />
+            </div>
           </div>
 
           {/* Activity Section */}
-          <div className="mb-6">
-            <ActivityList />
+          <div className="mb-6 -mx-4 sm:mx-0 px-4 sm:px-0 overflow-x-auto sm:overflow-visible">
+            <div className="min-w-0">
+              <ActivityList />
+            </div>
             {/* <ActivityGauge />
             <WeeklySummary /> */}
           </div>

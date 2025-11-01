@@ -18,6 +18,7 @@ interface ChatAreaProps {
   chatName?: string | null
   chatType?: 'user' | 'group'
   onShowProfile: () => void
+  onBack?: () => void
 }
 
 import { useMessages, useUserProfile } from "@/hooks"
@@ -25,7 +26,7 @@ import { messagesService, socketService } from "@/services"
 import type { Message as ChatMessage } from "@/types/message"
 import { GroupDetailsDialog } from "@/components/groups/group-details-dialog"
 
-export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProfile }: ChatAreaProps) {
+export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProfile, onBack }: ChatAreaProps) {
   const [newMessage, setNewMessage] = useState("")
   const [isSending, setIsSending] = useState(false)
   const sendingRef = useRef(false)
@@ -231,6 +232,32 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
       {/* Chat Header */}
       <div className="flex items-center justify-between p-4 bg-zinc-900 border-b border-zinc-800">
         <div className="flex items-center">
+          {/* Mobile back to list */}
+          {typeof window !== 'undefined' && (
+            <button
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  // no-op placeholder
+                }
+              }}
+              className="hidden"
+            />
+          )}
+          {/** Actual back button rendered only on mobile when onBack provided */}
+          {typeof onBack === 'function' && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden mr-1 text-gray-300 hover:text-white"
+              onClick={onBack}
+              aria-label="Back"
+            >
+              {/* Using an inline svg to avoid adding new imports */}
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+                <path fillRule="evenodd" d="M15.78 4.22a.75.75 0 010 1.06L9.06 12l6.72 6.72a.75.75 0 11-1.06 1.06l-7.25-7.25a.75.75 0 010-1.06l7.25-7.25a.75.75 0 011.06 0z" clipRule="evenodd" />
+              </svg>
+            </Button>
+          )}
           <Avatar 
             className="h-10 w-10 mr-3 cursor-pointer"
             onClick={() => {
