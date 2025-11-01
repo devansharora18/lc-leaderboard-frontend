@@ -8,7 +8,8 @@ export function Sidebar() {
   const pathname = usePathname()
   
   const isActive = (path: string) => {
-    return pathname === path
+    if (path === "/") return pathname === "/"
+    return pathname === path || pathname.startsWith(`${path}/`)
   }
 
   return (
@@ -41,7 +42,7 @@ export function Sidebar() {
           href="/chat"
           className={cn(
             "flex h-10 w-10 items-center justify-center rounded-md transition-colors",
-            isActive("/messages")
+            isActive("/chat")
               ? "bg-zinc-800 text-amber-500"
               : "text-gray-400 hover:bg-zinc-800 hover:text-white"
           )}

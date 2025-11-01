@@ -30,6 +30,8 @@ interface DisplayItem {
   avatar: string
   isAdmin?: boolean
   isGroup?: boolean
+  // epoch ms for sorting by latest activity/message
+  latestAt?: number
 }
 
 const filterTabs = [
@@ -46,15 +48,19 @@ export function ChatSidebar({ selectedChat, onSelectChat, onShowDiscoverGroups }
   const [groupDialogId, setGroupDialogId] = useState<string | null>(null)
 
   const getDisplayData = (): DisplayItem[] => {
-    const groupItems: DisplayItem[] = myGroups.map(group => ({
-      id: group.id,
-      name: group.name,
-      lastMessage: `${group.memberCount || group._count?.members || 0} members • Last activity: ${new Date(group.updatedAt).toLocaleDateString()}`,
-      time: new Date(group.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      unread: false,
-      avatar: "",
-      isGroup: true
-    }))
+    const groupItems: DisplayItem[] = myGroups.map(group => {
+      const updatedAt = new Date(group.updatedAt)
+      return {
+        id: group.id,
+        name: group.name,
+        lastMessage: `${group.memberCount || group._count?.members || 0} members • Last activity: ${updatedAt.toLocaleDateString()}`,
+        time: updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        unread: false,
+        avatar: "",
+        isGroup: true,
+        latestAt: updatedAt.getTime(),
+      }
+    })
 
     let data: DisplayItem[] = []
     
@@ -68,6 +74,9 @@ export function ChatSidebar({ selectedChat, onSelectChat, onShowDiscoverGroups }
         item.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
       )
     }
+
+    // Sort by latest message/activity time desc
+    data.sort((a, b) => (b.latestAt ?? 0) - (a.latestAt ?? 0))
 
     return data
   }
@@ -89,9 +98,8 @@ export function ChatSidebar({ selectedChat, onSelectChat, onShowDiscoverGroups }
             <div className="flex gap-2">
               <Button 
                 size="sm" 
-                variant="outline"
                 onClick={onShowDiscoverGroups}
-                className="border-zinc-600 text-zinc-300 hover:bg-zinc-700"
+                className="bg-indigo-500 hover:bg-indigo-600 text-white"
               >
                 <Globe className="h-4 w-4 mr-1" />
                 Discover
@@ -169,9 +177,8 @@ export function ChatSidebar({ selectedChat, onSelectChat, onShowDiscoverGroups }
                 <div className="flex gap-2 justify-center">
                   <Button 
                     size="sm" 
-                    variant="outline"
                     onClick={onShowDiscoverGroups}
-                    className="border-zinc-600"
+                    className="bg-indigo-500 hover:bg-indigo-600 text-white"
                   >
                     Discover Groups
                   </Button>

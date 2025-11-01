@@ -9,10 +9,7 @@ import {
   Send, 
   Paperclip, 
   Smile,
-  Phone,
-  Video,
-  MoreHorizontal,
-  Image as ImageIcon
+  
 } from "lucide-react"
 import { Check, CheckCheck } from "lucide-react"
 
@@ -254,32 +251,10 @@ export function ChatArea({ selectedChat, chatName, chatType = 'user', onShowProf
           </div>
         </div>
         
-        <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-            <Phone className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-            <Video className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-            <MoreHorizontal className="h-5 w-5" />
-          </Button>
-        </div>
+        {/* Removed call, video, and menu buttons as requested */}
       </div>
 
-      {/* Image Preview Area */}
-      <div className="p-4 bg-zinc-900 border-b border-zinc-800">
-        <div className="bg-zinc-800 rounded-lg p-8 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-24 h-24 bg-zinc-700 rounded-lg mx-auto mb-2 flex items-center justify-center">
-              <ImageIcon className="h-12 w-12 text-gray-400" />
-            </div>
-            <div className="bg-amber-500 text-black px-2 py-1 rounded text-xs font-medium inline-block">
-              Today
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Removed image preview area as requested */}
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
