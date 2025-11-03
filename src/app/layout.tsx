@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/contexts/auth.context";
 import { Toaster } from "@/components/ui/sonner";
+import { AppDownloadToast } from "@/components/app-download-toast";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -35,7 +36,8 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
-        <Toaster />
+        <Toaster position="top-center" />
+        <AppDownloadToast />
       </body>
     </html>
   );
