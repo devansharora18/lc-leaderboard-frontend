@@ -23,7 +23,7 @@ export function AppDownloadToast() {
       if (dismissed) return
     }
 
-    const id = toast(
+    toast(
       "Download the app on Play Store",
       {
         description:
